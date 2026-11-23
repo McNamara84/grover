@@ -1,0 +1,11 @@
+[workspace]
+members = ["crates/igsn-web"]
+resolver = "3"
+
+[[workspace.metadata.leptos]]
+name = "grover"
+bin-package = "igsn-web"
+lib-package = "igsn-web"
+bin-features = ["ssr"]
+lib-features = ["hydrate"]
+style-file = "crates/igsn-web/style/main.css"

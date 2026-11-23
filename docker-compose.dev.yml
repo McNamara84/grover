@@ -1,0 +1,32 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    init: true
+    environment:
+      LEPTOS_SITE_ADDR: "0.0.0.0:3000"
+    ports:
+      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:3001:3001"
+    volumes:
+      - cargo-target:/workspace/target
+    develop:
+      watch:
+        - action: sync
+          path: ./crates/igsn-web/src
+          target: /workspace/crates/igsn-web/src
+        - action: sync
+          path: ./crates/igsn-web/style
+          target: /workspace/crates/igsn-web/style
+        - action: rebuild
+          path: ./Cargo.toml
+        - action: rebuild
+          path: ./crates/igsn-web/Cargo.toml
+        - action: rebuild
+          path: ./Cargo.lock
+        - action: rebuild
+          path: ./Dockerfile.dev
+
+volumes:
+  cargo-target:

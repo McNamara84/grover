@@ -1,0 +1,25 @@
+FROM rust:1.100.0-trixie
+
+ARG CARGO_LEPTOS_VERSION=0.3.11
+RUN rustup target add wasm32-unknown-unknown && rustup component add rustfmt clippy
+
+WORKDIR /tmp
+RUN set -eu; \
+    host="$(rustc -vV | sed -n 's/^host: //p')"; \
+    archive="cargo-leptos-${host}.tar.gz"; \
+    release="https://github.com/leptos-rs/cargo-leptos/releases/download/v${CARGO_LEPTOS_VERSION}"; \
+    curl -fsSLO --retry 3 "${release}/${archive}"; \
+    curl -fsSLO --retry 3 "${release}/${archive}.sha256"; \
+    sha256sum --check "${archive}.sha256"; \
+    tar -xzf "${archive}" -C "${CARGO_HOME}/bin" --strip-components=1 "cargo-leptos-${host}/cargo-leptos"; \
+    rm "${archive}" "${archive}.sha256"
+
+WORKDIR /workspace
+COPY Cargo.toml Cargo.lock ./
+COPY crates/igsn-web/Cargo.toml crates/igsn-web/Cargo.toml
+RUN cargo fetch --locked
+
+COPY .gitignore ./
+COPY crates/igsn-web/src crates/igsn-web/src
+COPY crates/igsn-web/style crates/igsn-web/style
+CMD ["cargo", "leptos", "watch", "--cargo-locked"]

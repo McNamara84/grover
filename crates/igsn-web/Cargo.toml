@@ -1,0 +1,30 @@
+[package]
+name = "igsn-web"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "igsn-web"
+path = "src/main.rs"
+required-features = ["ssr"]
+
+[dependencies]
+axum = { version = "0.8", optional = true }
+console_error_panic_hook = { version = "0.1", optional = true }
+leptos = "0.8"
+leptos_axum = { version = "0.8", optional = true }
+leptos_router = "0.8"
+tokio = { version = "1", features = ["macros", "net", "rt-multi-thread"], optional = true }
+wasm-bindgen = { version = "0.2", optional = true }
+
+[dev-dependencies]
+tower = { version = "0.5", features = ["util"] }
+
+[features]
+hydrate = ["leptos/hydrate", "dep:wasm-bindgen", "dep:console_error_panic_hook"]
+ssr = ["leptos/ssr", "leptos_router/ssr", "dep:axum", "dep:leptos_axum", "dep:tokio"]
