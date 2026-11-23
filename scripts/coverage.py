@@ -1,6 +1,7 @@
 """Run the native Rust tests and refresh their coverage reports and README badges."""
 
 import json
+import os
 from pathlib import Path
 import subprocess
 
@@ -36,6 +37,11 @@ def main():
         ["cargo", "llvm-cov", "report", "--html", "--output-dir", str(report), *exclude_tests],
         check=True,
     )
+    # LLVM creates directories with mode 0750. Give the report to the owner of the bind mount.
+    owner = report.parent.stat()
+    if os.name == "posix" and os.geteuid() == 0 and owner.st_uid != 0:
+        subprocess.run(["chown", "-R", f"{owner.st_uid}:{owner.st_gid}", report], check=True)
+
     totals = json.loads(summary.read_text(encoding="utf-8"))["data"][0]["totals"]
     for metric in ("lines", "functions"):
         write_badge(metric, totals[metric])
