@@ -24,6 +24,8 @@ jobs:
         run: |
           docker compose run --rm -T coverage cargo fmt --all -- --check
           docker compose run --rm -T coverage cargo clippy --locked --workspace --features ssr --all-targets -- -D warnings
+      - name: Lint the WebAssembly client
+        run: docker compose run --rm -T coverage cargo clippy --locked -p igsn-web --lib --target wasm32-unknown-unknown --no-default-features --features hydrate -- -D warnings
       - name: Run the Rust tests and measure coverage
         run: docker compose run --rm -T coverage
       - name: Upload coverage report

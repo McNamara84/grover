@@ -2,9 +2,16 @@
   "name": "grover-e2e",
   "private": true,
   "scripts": {
+    "check": "npm run typecheck && npm run lint",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "oxlint --deny-warnings playwright.config.ts tests",
     "test": "playwright test"
   },
   "devDependencies": {
-    "@playwright/test": "1.65.1"
+    "@playwright/test": "1.65.1",
+    "@types/node": "26.6.6",
+    "oxlint": "1.94.0",
+    "oxlint-tsgolint": "7.0.2008",
+    "typescript": "7.0.2"
   }
 }

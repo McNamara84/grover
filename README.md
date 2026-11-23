@@ -47,12 +47,21 @@ docker compose -f docker-compose.dev.yml down
 
 ## Testing
 
-The Rust tests send HTTP requests through the Axum router. They check the initial HTML, the response to a missing browser asset and the status of an unsupported request method. To run the same formatting and lint checks as CI and run the tests in the development container, use
+The Rust tests send HTTP requests through the Axum router. They check the initial HTML, the response to a missing browser asset and the status of an unsupported request method. CI runs Clippy for both the native server (`ssr`) and the WebAssembly client (`hydrate`). To run the same checks and tests in the development container, use
 
 ```sh
 docker compose -f docker-compose.dev.yml exec web cargo fmt --all -- --check
 docker compose -f docker-compose.dev.yml exec web cargo clippy --locked --workspace --features ssr --all-targets -- -D warnings
+docker compose -f docker-compose.dev.yml exec web cargo clippy --locked -p igsn-web --lib --target wasm32-unknown-unknown --no-default-features --features hydrate -- -D warnings
 docker compose -f docker-compose.dev.yml exec web cargo test --locked --workspace --features ssr
+```
+
+For Clippy diagnostics on save, editors using rust-analyzer can set `rust-analyzer.check.command` to `clippy`. [rust-analyzer configuration](https://rust-analyzer.github.io/book/configuration.html#rust-analyzer.check.command)
+
+Before launching browsers, CI checks the Playwright configuration and test files with TypeScript in strict mode and with type-aware Oxlint. For example, an unawaited Playwright assertion fails the `typescript/no-floating-promises` rule. To run both checks locally, use
+
+```sh
+docker compose -f docker-compose.dev.yml run --rm --no-deps --build --entrypoint npm e2e run check
 ```
 
 Playwright checks the exact notice with JavaScript disabled. With JavaScript enabled, it loads the WebAssembly bundle and exercises the hydrated router using Back and Forward. The following command builds the test image, starts the web service if needed and waits for it to serve HTTP before opening a browser.

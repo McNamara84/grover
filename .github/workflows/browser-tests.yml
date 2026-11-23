@@ -18,10 +18,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Build the browser tests and start GROVER
-        run: |
-          docker compose build web e2e
-          docker compose up -d --wait --wait-timeout 600 web
+      - name: Type-check and lint the Playwright suite
+        run: docker compose run --rm --no-deps --build -T --entrypoint npm e2e run check
+      - name: Start GROVER
+        run: docker compose up -d --build --wait --wait-timeout 600 web
       - name: Test Chromium on pull requests
         if: github.event_name == 'pull_request'
         run: docker compose run --rm -T e2e --project=chromium
