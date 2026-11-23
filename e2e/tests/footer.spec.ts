@@ -64,6 +64,26 @@ test.describe('shared footer without JavaScript', () => {
   });
 });
 
+test('the changelog uses the home page text and background colors', async ({ page }) => {
+  function readingColors(element: Element) {
+    const text = getComputedStyle(element).color;
+    for (let surface: Element | null = element; surface; surface = surface.parentElement) {
+      const background = getComputedStyle(surface).backgroundColor;
+      if (background !== 'rgba(0, 0, 0, 0)') {
+        return { text, background };
+      }
+    }
+    throw new Error('No page background found');
+  }
+
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.goto('/');
+  const home = await page.getByRole('main').getByRole('paragraph').evaluate(readingColors);
+  await page.getByRole('contentinfo').getByRole('link', { name: /changelog$/ }).click();
+  const heading = page.getByRole('heading', { name: 'Release notes for GROVER' });
+  expect(await heading.evaluate(readingColors)).toEqual(home);
+});
+
 test('aligns the desktop footer with the reference on a short page', async ({ page }) => {
   await page.setViewportSize({ width: 1496, height: 700 });
   await page.goto('/');

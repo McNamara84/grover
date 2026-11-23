@@ -123,9 +123,8 @@ main {
 }
 
 .changelog {
+    --changelog-divider: #bdcec5;
     flex: 1;
-    background: #0d1117;
-    color: #e6edf3;
 }
 
 .changelog-content {
@@ -137,7 +136,7 @@ main {
 .changelog h1 {
     margin: 0 0 2rem;
     padding-bottom: 1.25rem;
-    border-bottom: 1px solid #30363d;
+    border-bottom: 1px solid var(--changelog-divider);
     font-size: clamp(1.65rem, 3vw, 2rem);
     line-height: 1.25;
     font-weight: 400;
@@ -157,7 +156,7 @@ main {
     inset-block: 0;
     inset-inline-start: calc(var(--version-width) / 2);
     width: 2px;
-    background: #30363d;
+    background: var(--changelog-divider);
 }
 
 .release-entry {
@@ -183,7 +182,7 @@ main {
     min-width: var(--version-width);
     padding: 0.375rem 0.625rem;
     border-radius: 0.2rem;
-    background: #7044b6;
+    background: #306454;
     color: white;
     font-size: 0.9375rem;
     font-weight: 600;
@@ -212,8 +211,8 @@ main {
 .change-category {
     padding: 0.125rem 0.25rem;
     border-radius: 0.2rem;
-    background: #195d9b;
-    color: white;
+    background: #e3edf3;
+    color: #2e5368;
     font-size: 0.6875rem;
     font-weight: 700;
     text-align: center;
@@ -222,7 +221,8 @@ main {
 
 .change-category[data-category="Added"],
 .change-category[data-category="New"] {
-    background: #20733b;
+    background: #e0f0e5;
+    color: #215a3d;
 }
 
 @media (max-width: 46rem) {
