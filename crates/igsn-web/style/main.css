@@ -50,12 +50,14 @@ main {
 .footer-info,
 .footer-social {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
+    max-inline-size: 100%;
 }
 
 .footer-info {
-    flex-wrap: wrap;
     column-gap: 2rem;
+    overflow-wrap: anywhere;
 }
 
 .footer-info a {
@@ -258,7 +260,8 @@ main {
 @media (max-width: 32rem) {
     .footer-info {
         display: grid;
-        grid-template-columns: repeat(2, max-content);
+        inline-size: 16rem;
+        grid-template-columns: repeat(auto-fit, minmax(min(7rem, 100%), 1fr));
         column-gap: 1.5rem;
     }
 

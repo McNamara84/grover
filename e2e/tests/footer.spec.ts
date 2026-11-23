@@ -130,3 +130,27 @@ test('stacks both link groups below the release notes on a narrow screen', async
   expect((await bounds(lastChange)).bottom).toBeLessThanOrEqual((await bounds(footer)).top);
   expect((await bounds(footer)).bottom).toBeGreaterThan(240);
 });
+
+test('reflows both footer link groups at 320 px with 32 px text', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.goto('/changelog');
+  await page.addStyleTag({ content: ':root { font-size: 32px; }' });
+
+  const footer = page.getByRole('contentinfo');
+  const availableWidth = await footer.evaluate(element => {
+    const style = getComputedStyle(element);
+    return element.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+  });
+  for (const name of ['Site information', 'GFZ social media']) {
+    const group = footer.getByRole('navigation', { name });
+    expect.soft(await group.evaluate(element => element.scrollWidth), name).toBeLessThanOrEqual(availableWidth);
+
+    const links = group.getByRole('link');
+    const overflowingLinks = await links.evaluateAll(elements => elements
+      .filter(link => link.scrollWidth > link.clientWidth)
+      .map(link => link.getAttribute('aria-label') ?? link.textContent));
+    expect.soft(overflowingLinks, name).toEqual([]);
+    expect.soft((await bounds(links.last())).top, name).toBeGreaterThan((await bounds(links.first())).top);
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(320);
+});
