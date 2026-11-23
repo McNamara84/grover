@@ -1,7 +1,7 @@
 services:
   grover-web:
     # deploy/stage replaces this marker with the tested GHCR digest.
-    image: ghcr.io/mcnamara84/grover:deployment-template
+    image: ghcr.io/mcnamara84/grover@sha256:a08ed45095c9d49f013f1cf0ba905ec19b76b3aac43ab1e54a44e546a9ec2962
     pull_policy: always
     init: true
     restart: unless-stopped
