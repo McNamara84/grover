@@ -53,7 +53,7 @@ async fn the_home_changelog_and_not_found_pages_share_one_footer_after_main() {
     let home = initial_html("/", StatusCode::OK).await;
     let changelog = initial_html("/changelog", StatusCode::OK).await;
     let missing = initial_html("/missing-page", StatusCode::NOT_FOUND).await;
-    assert!(missing.contains("Page not found."));
+    assert!(missing.contains(r#"<div class="page-notice"><p>Page not found."#));
     let home_footer = footer(&home);
     assert_eq!(home_footer, footer(&changelog));
     assert_eq!(home_footer, footer(&missing));

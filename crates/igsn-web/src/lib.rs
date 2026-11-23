@@ -15,7 +15,7 @@ pub fn App() -> impl IntoView {
     view! {
         <Router>
             <main>
-                <Routes fallback=|| view! { <div class="page-notice">"Page not found."</div> }>
+                <Routes fallback=|| page_notice("Page not found.")>
                     <Route path=StaticSegment("") view=HomePage/>
                     <Route path=StaticSegment("changelog") view=ChangelogPage/>
                 </Routes>
@@ -27,9 +27,15 @@ pub fn App() -> impl IntoView {
 
 #[component]
 fn HomePage() -> impl IntoView {
+    page_notice(
+        "This is where GROVER is being developed - the Generator of Researcher-friendly, Ontology-aligned, Validated Excel templates for Research samples!",
+    )
+}
+
+fn page_notice(message: &'static str) -> impl IntoView {
     view! {
         <div class="page-notice">
-            <p>"This is where GROVER is being developed - the Generator of Researcher-friendly, Ontology-aligned, Validated Excel templates for Research samples!"</p>
+            <p>{message}</p>
         </div>
     }
 }

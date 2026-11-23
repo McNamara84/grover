@@ -60,6 +60,13 @@ test('hydrates the page and handles browser history', async ({ page }) => {
   expect((await style).ok()).toBe(true);
   await page.waitForFunction(() => performance.getEntriesByName('grover-history-ready').length > 0);
 
+  function noticeStyle(element: Element) {
+    const { borderInlineStart, fontSize, lineHeight } = getComputedStyle(element);
+    return { borderInlineStart, fontSize, lineHeight };
+  }
+  const paragraph = page.getByRole('main').getByRole('paragraph');
+  const homeNoticeStyle = await paragraph.evaluate(noticeStyle);
+
   // Seed two entries in this document so that Back and Forward exercise the client-side router.
   await page.evaluate(() => {
     history.replaceState(null, '', '/browser-test-missing-page');
@@ -67,8 +74,8 @@ test('hydrates the page and handles browser history', async ({ page }) => {
   });
   await page.goBack();
   await expect(page.getByRole('main')).toHaveText('Page not found.');
+  expect(await paragraph.evaluate(noticeStyle)).toEqual(homeNoticeStyle);
   await page.goForward();
-  const paragraph = page.getByRole('main').getByRole('paragraph');
   await expect(paragraph).toBeVisible();
   await expect(paragraph).toHaveText(notice);
 
