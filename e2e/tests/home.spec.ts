@@ -57,5 +57,26 @@ test('hydrates the page and handles browser history', async ({ page }) => {
   const paragraph = page.getByRole('main').getByRole('paragraph');
   await expect(paragraph).toBeVisible();
   await expect(paragraph).toHaveText(notice);
+
+  const footer = page.getByRole('contentinfo');
+  const heading = page.getByRole('heading', { name: 'Release notes for GROVER' });
+  await page.evaluate(() => performance.mark('before-changelog-click'));
+  await footer.getByRole('link', { name: /changelog$/ }).click();
+  await expect(page).toHaveURL(/\/changelog$/);
+  await expect(heading).toBeVisible();
+  await expect(footer).toHaveCount(1);
+  // A full document navigation would discard this mark.
+  expect(await page.evaluate(() => performance.getEntriesByName('before-changelog-click').length)).toBe(1);
+
+  await page.goBack();
+  await expect(paragraph).toHaveText(notice);
+  await expect(footer).toHaveCount(1);
+  await page.goForward();
+  await expect(heading).toBeVisible();
+  await expect(footer).toHaveCount(1);
+  await page.reload();
+  await page.waitForFunction(() => performance.getEntriesByName('grover-history-ready').length > 0);
+  await expect(heading).toBeVisible();
+  await expect(footer).toHaveCount(1);
   expect(errors).toEqual([]);
 });

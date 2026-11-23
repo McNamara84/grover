@@ -4,15 +4,23 @@ use leptos_router::{
     components::{Route, Router, Routes},
 };
 
+mod changelog;
+mod footer;
+
+use changelog::ChangelogPage;
+use footer::Footer;
+
 #[component]
 pub fn App() -> impl IntoView {
     view! {
         <Router>
             <main>
-                <Routes fallback=|| "Page not found.">
+                <Routes fallback=|| view! { <div class="page-notice">"Page not found."</div> }>
                     <Route path=StaticSegment("") view=HomePage/>
+                    <Route path=StaticSegment("changelog") view=ChangelogPage/>
                 </Routes>
             </main>
+            <Footer/>
         </Router>
     }
 }
@@ -20,7 +28,9 @@ pub fn App() -> impl IntoView {
 #[component]
 fn HomePage() -> impl IntoView {
     view! {
-        <p>"This is where GROVER is being developed - the Generator of Researcher-friendly, Ontology-aligned, Validated Excel templates for Research samples!"</p>
+        <div class="page-notice">
+            <p>"This is where GROVER is being developed - the Generator of Researcher-friendly, Ontology-aligned, Validated Excel templates for Research samples!"</p>
+        </div>
     }
 }
 
