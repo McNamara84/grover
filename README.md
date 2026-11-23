@@ -1,5 +1,16 @@
 # GROVER
 
+[![Rust](https://img.shields.io/badge/Rust-1.100.0-382e2a?logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![Axum](https://img.shields.io/badge/Axum-0.8-445469)](https://docs.rs/axum/)
+[![Tokio](https://img.shields.io/badge/Tokio-1-364552)](https://tokio.rs/)
+[![Leptos](https://img.shields.io/badge/Leptos-0.8-a44228)](https://leptos.dev/)
+[![Docker Compose](https://img.shields.io/badge/Docker-Compose-1769a5?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
+
+[![Rust tests](https://github.com/McNamara84/grover/actions/workflows/rust-tests.yml/badge.svg?branch=main)](https://github.com/McNamara84/grover/actions/workflows/rust-tests.yml)
+[![Playwright browser tests](https://github.com/McNamara84/grover/actions/workflows/browser-tests.yml/badge.svg?branch=main)](https://github.com/McNamara84/grover/actions/workflows/browser-tests.yml)
+[![Native Rust line coverage](coverage/rust-lines.svg)](#coverage)
+[![Native Rust function coverage](coverage/rust-functions.svg)](#coverage)
+
 **Generator of Researcher-friendly, Ontology-aligned, Validated Excel templates for Research samples**
 
 GROVER is being developed for researchers preparing physical samples for IGSN registration. An International Generic Sample Number (IGSN) gives a sample a persistent identifier. [DataCite’s guide to IGSN IDs](https://support.datacite.org/docs/igsn-ids)
@@ -28,19 +39,47 @@ To follow the server logs from another terminal, run
 docker compose -f docker-compose.dev.yml logs -f web
 ```
 
-To check formatting, lint the server and run its tests in the running container, use
-
-```sh
-docker compose -f docker-compose.dev.yml exec web cargo fmt --all -- --check
-docker compose -f docker-compose.dev.yml exec web cargo clippy -p igsn-web --features ssr -- -D warnings
-docker compose -f docker-compose.dev.yml exec web cargo test -p igsn-web --features ssr
-```
-
 Press Ctrl+C to leave watch mode, then stop and remove the development container with
 
 ```sh
 docker compose -f docker-compose.dev.yml down
 ```
+
+## Testing
+
+The Rust tests send HTTP requests through the Axum router. They check the initial HTML, the response to a missing browser asset and the status of an unsupported request method. To run the same formatting and lint checks as CI and run the tests in the development container, use
+
+```sh
+docker compose -f docker-compose.dev.yml exec web cargo fmt --all -- --check
+docker compose -f docker-compose.dev.yml exec web cargo clippy --locked --workspace --features ssr --all-targets -- -D warnings
+docker compose -f docker-compose.dev.yml exec web cargo test --locked --workspace --features ssr
+```
+
+Playwright checks the exact notice with JavaScript disabled. With JavaScript enabled, it loads the WebAssembly bundle and exercises the hydrated router using Back and Forward. The following command builds the test image, starts the web service if needed and waits for it to serve HTTP before opening a browser.
+
+```sh
+docker compose -f docker-compose.dev.yml run --rm --build e2e --project=chromium
+```
+
+Omit `--project=chromium` to run Chromium, Firefox and WebKit. Pull requests run Chromium. Pushes to `main`, version tags (`v*`) and manual workflow runs exercise all three engines. Playwright saves failure traces in `target/playwright/`. CI makes them available as the `playwright-traces` artifact.
+
+### Coverage
+
+To run the native Rust tests with LLVM instrumentation and refresh the two coverage badges, use
+
+```sh
+docker compose -f docker-compose.dev.yml run --rm --build coverage
+```
+
+The percentages measure application lines and functions compiled with the `ssr` feature. The coverage report excludes test source files. The Playwright E2E badge reports the browser results. Open `coverage/report/html/index.html` to inspect individual lines or use `coverage/report/summary.json` for the totals. Commit the refreshed SVGs with changes that affect the measurements. The Rust workflow checks them against its own run and uploads the `rust-coverage` report.
+
+### Tests for the next milestones
+
+| Milestone | Acceptance checks |
+| --- | --- |
+| Profile registry | Use `proptest` to generate combinations of optional fields and sample hierarchy levels. Check field identity and rejection of conflicting paths. Adopt `cargo-nextest` when multiple Rust crates have test suites. |
+| First XLSX export | Read generated workbooks with `calamine`. Use `insta` to review snapshots of sheet names, column order and sample values. Check dropdown ranges, defined names and sheet protection in the workbook XML. |
+| First project form and release | Add Playwright cases for correcting an invalid input and downloading a configured workbook. Before release, open a reference workbook in Excel and LibreOffice, choose a dropdown value, enter a sample, save and reopen it. |
 
 ## License
 

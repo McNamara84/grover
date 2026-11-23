@@ -15,11 +15,15 @@ RUN set -eu; \
     rm "${archive}" "${archive}.sha256"
 
 WORKDIR /workspace
+RUN rustup component add llvm-tools-preview \
+    && cargo install --locked --version 0.9.2 cargo-llvm-cov
+
 COPY Cargo.toml Cargo.lock ./
 COPY crates/igsn-web/Cargo.toml crates/igsn-web/Cargo.toml
 RUN cargo fetch --locked
 
 COPY .gitignore ./
+COPY scripts/coverage.py scripts/coverage.py
 COPY crates/igsn-web/src crates/igsn-web/src
 COPY crates/igsn-web/style crates/igsn-web/style
 CMD ["cargo", "leptos", "watch", "--cargo-locked"]

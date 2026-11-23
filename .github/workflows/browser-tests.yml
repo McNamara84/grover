@@ -1,0 +1,40 @@
+name: Playwright E2E
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  COMPOSE_FILE: docker-compose.dev.yml
+
+jobs:
+  playwright:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Build the browser tests and start GROVER
+        run: |
+          docker compose build web e2e
+          docker compose up -d --wait --wait-timeout 600 web
+      - name: Test Chromium on pull requests
+        if: github.event_name == 'pull_request'
+        run: docker compose run --rm -T e2e --project=chromium
+      - name: Test Chromium, Firefox and WebKit
+        if: github.event_name != 'pull_request'
+        run: docker compose run --rm -T e2e
+      - name: Show server logs on failure
+        if: failure()
+        run: docker compose logs web
+      - name: Upload Playwright failure traces
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-traces
+          path: target/playwright/
+          if-no-files-found: ignore

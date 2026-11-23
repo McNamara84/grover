@@ -1,0 +1,38 @@
+name: Rust tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  COMPOSE_FILE: docker-compose.dev.yml
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Build the Rust test environment
+        run: docker compose build coverage
+      - name: Check formatting and lint the server and tests
+        run: |
+          docker compose run --rm -T coverage cargo fmt --all -- --check
+          docker compose run --rm -T coverage cargo clippy --locked --workspace --features ssr --all-targets -- -D warnings
+      - name: Run the Rust tests and measure coverage
+        run: docker compose run --rm -T coverage
+      - name: Upload coverage report
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: rust-coverage
+          path: coverage/report/
+          if-no-files-found: error
+      - name: Check that the README badges match the measured coverage
+        run: |
+          git ls-files --error-unmatch -- coverage/rust-lines.svg coverage/rust-functions.svg
+          git diff --exit-code -- coverage/rust-lines.svg coverage/rust-functions.svg

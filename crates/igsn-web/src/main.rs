@@ -40,22 +40,4 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use axum::body::{Body, to_bytes};
-    use axum::http::{Request, StatusCode};
-    use tower::ServiceExt;
-
-    #[tokio::test]
-    async fn home_serves_the_development_notice_in_the_initial_html() {
-        let options = LeptosOptions::builder().output_name("grover").build();
-        let request = Request::get("/").body(Body::empty()).unwrap();
-        let response = router(options).oneshot(request).await.unwrap();
-        assert_eq!(response.status(), StatusCode::OK);
-
-        let body = to_bytes(response.into_body(), 64 * 1024).await.unwrap();
-        let html = std::str::from_utf8(&body).unwrap();
-        assert!(html.contains("<title>GROVER</title>"));
-        assert!(html.contains("<p>This is where GROVER is being developed - the Generator of Researcher-friendly, Ontology-aligned, Validated Excel templates for Research samples!</p>"));
-    }
-}
+mod tests;

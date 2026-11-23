@@ -1,8 +1,10 @@
+x-rust-build: &rust-build
+  context: .
+  dockerfile: Dockerfile.dev
+
 services:
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
+    build: *rust-build
     init: true
     environment:
       LEPTOS_SITE_ADDR: "0.0.0.0:3000"
@@ -11,6 +13,12 @@ services:
       - "127.0.0.1:3001:3001"
     volumes:
       - cargo-target:/workspace/target
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "--output", "/dev/null", "http://127.0.0.1:3000/"]
+      interval: 5s
+      timeout: 3s
+      start_period: 10m
+      retries: 5
     develop:
       watch:
         - action: sync
@@ -27,6 +35,28 @@ services:
           path: ./Cargo.lock
         - action: rebuild
           path: ./Dockerfile.dev
+
+  coverage:
+    profiles: ["test"]
+    build: *rust-build
+    command: ["python3", "scripts/coverage.py"]
+    volumes:
+      - cargo-target:/workspace/target
+      - ./coverage:/workspace/coverage
+
+  e2e:
+    profiles: ["test"]
+    build: ./e2e
+    init: true
+    shm_size: 1gb
+    depends_on:
+      web:
+        condition: service_healthy
+    environment:
+      PLAYWRIGHT_BASE_URL: http://web:3000
+      CI: ${CI:-}
+    volumes:
+      - ./target/playwright:/tests/test-results
 
 volumes:
   cargo-target:
