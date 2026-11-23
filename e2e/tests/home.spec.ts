@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 const notice = 'This is where GROVER is being developed - the Generator of Researcher-friendly, Ontology-aligned, Validated Excel templates for Research samples!';
 
-test.describe('server-rendered home page', () => {
+test.describe('server-rendered pages', () => {
   test.use({ javaScriptEnabled: false });
 
   test('shows the development notice without JavaScript', async ({ page }) => {
@@ -13,6 +13,20 @@ test.describe('server-rendered home page', () => {
     const paragraph = page.getByRole('main').getByRole('paragraph');
     await expect(paragraph).toBeVisible();
     await expect(paragraph).toHaveText(notice);
+  });
+
+  test('returns home by keyboard after opening the changelog directly on mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 568 });
+    await page.goto('/changelog');
+    const backLink = page.getByRole('main').getByRole('link', { name: 'Back to GROVER', exact: true });
+    await expect(backLink).toHaveAttribute('href', '/');
+    await expect(backLink).toBeInViewport();
+    await page.keyboard.press('Tab');
+    await expect(backLink).toBeFocused();
+    await expect(backLink).toHaveCSS('outline-style', 'solid');
+    await page.keyboard.press('Enter');
+    await expect(page).toHaveURL('/');
+    await expect(page.getByRole('main').getByRole('paragraph')).toHaveText(notice);
   });
 });
 
@@ -74,6 +88,13 @@ test('hydrates the page and handles browser history', async ({ page }) => {
   await page.goForward();
   await expect(heading).toBeVisible();
   await expect(footer).toHaveCount(1);
+
+  await page.getByRole('link', { name: 'Back to GROVER', exact: true }).click();
+  await expect(page).toHaveURL('/');
+  await expect(paragraph).toHaveText(notice);
+  expect(await page.evaluate(() => performance.getEntriesByName('before-changelog-click').length)).toBe(1);
+  await page.goBack();
+  await expect(heading).toBeVisible();
   await page.reload();
   await page.waitForFunction(() => performance.getEntriesByName('grover-history-ready').length > 0);
   await expect(heading).toBeVisible();

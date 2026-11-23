@@ -22,7 +22,7 @@ const RELEASES: &[Release] = &[Release {
     published: None,
     changes: &[Change {
         category: "Added",
-        description: "Open the release notes from the version link in the footer on every page.",
+        description: "Open the release notes from the version link in the footer and return home with “Back to GROVER”.",
     }],
 }];
 
@@ -33,6 +33,9 @@ pub(super) fn ChangelogPage() -> impl IntoView {
     view! {
         <article class="changelog">
             <div class="changelog-content">
+                <a class="changelog-back" href="/">
+                    <span aria-hidden="true">"←"</span>"Back to GROVER"
+                </a>
                 <h1>"Release notes for GROVER"</h1>
                 <ol class="release-list" role="list">
                     {RELEASES.iter().map(release_entry).collect_view()}

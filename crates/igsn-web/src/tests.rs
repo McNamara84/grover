@@ -31,7 +31,11 @@ async fn home_serves_the_development_notice_in_the_initial_html() {
 async fn changelog_serves_the_current_release_in_the_initial_html() {
     let html = initial_html("/changelog", StatusCode::OK).await;
     let (main, _) = html.split_once("</main>").unwrap();
-    assert!(main.contains("<h1>Release notes for GROVER</h1>"));
+    let (navigation, _) = main
+        .split_once("<h1>Release notes for GROVER</h1>")
+        .unwrap();
+    assert!(navigation.contains(r#"href="/""#));
+    assert!(navigation.contains("Back to GROVER"));
     assert!(main.contains("v0.1.0dev"));
     assert!(main.contains("Unreleased"));
     assert!(main.contains("Added"));

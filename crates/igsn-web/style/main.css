@@ -108,7 +108,8 @@ main {
     color: #306454;
 }
 
-.site-footer a:focus-visible {
+.site-footer a:focus-visible,
+.changelog-back:focus-visible {
     outline: 2px solid #306454;
     outline-offset: 3px;
 }
@@ -131,6 +132,28 @@ main {
     max-width: 58rem;
     margin-inline: auto;
     padding: clamp(1.25rem, 3vw, 2.5rem) clamp(1rem, 3vw, 2rem) 4rem;
+}
+
+.changelog-back {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    margin-bottom: 1.25rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid #789184;
+    border-radius: 2rem;
+    background: white;
+    color: #306454;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.changelog-back:hover {
+    border-color: currentColor;
+    background: #e0f0e5;
 }
 
 .changelog h1 {
