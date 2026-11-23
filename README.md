@@ -33,7 +33,7 @@ docker compose -f docker-compose.dev.yml up --build --watch
 
 The first start downloads the toolchain and compiles both the server and browser bundle. Once the logs show `Serving GROVER`, open [the local home page](http://localhost:3000/).
 
-Keep the command running while editing. Compose syncs changes under `crates/igsn-web/src` and `crates/igsn-web/style`. Leptos rebuilds the affected code and reloads the browser using port 3001. Both ports are bound to the loopback interface. Changes to the Cargo manifests, lockfile or development Dockerfile rebuild the image. A Docker volume caches compiled artifacts between starts.
+Keep the command running while editing. Compose syncs changes under `crates/igsn-web/src` and `crates/igsn-web/style`. Leptos rebuilds the affected code and reloads the browser using port 3001. Both ports are bound to the loopback interface. Changes to the Cargo manifests, lockfile, development Dockerfile or `cargo-leptos` installer rebuild the image. A Docker volume caches compiled artifacts between starts.
 
 To follow the server logs from another terminal, run
 
@@ -46,6 +46,21 @@ Press Ctrl+C to leave watch mode, then stop and remove the development container
 ```sh
 docker compose -f docker-compose.dev.yml down
 ```
+
+## Stage deployment
+
+Each push to `dev` runs the Rust checks and the full Playwright suite. GitHub Actions publishes a Linux/amd64 image to `ghcr.io/mcnamara84/grover` with the tag `sha-<full-commit-sha>`. It starts the published image by digest and tests server rendering, CSS, WebAssembly and client-side navigation in Chromium. If that commit is still the tip of `dev`, Actions records the tested digest in `docker-compose.stage.yml` on the machine-managed `deploy/stage` branch. Portainer on RZ-VM182 polls this branch. [Stage workflow](.github/workflows/deploy-stage.yml)
+
+### First rollout
+
+1. Confirm that the Stage VM supports `linux/amd64`, has the external Docker network `traefik`, and can pull from GitHub and GHCR over HTTPS. Point `grover.rz-vm182.gfz.de` at the existing Stage ingress and verify that its certificate covers the hostname.
+2. Apply ERNIE's GFZ network and VPN access policy to the hostname before enabling the stack. If the network boundary or the shared `https` entrypoint enforces the policy, verify that it covers GROVER. If ERNIE applies it per router, set the Portainer stack variable `GROVER_STAGE_MIDDLEWARES` to the existing middleware name including its provider suffix. Traefik forwards requests to the container on port 3000 over the shared network.
+3. Allow the workflow token to publish the package and update `deploy/stage`. After the first successful image publication, open the `grover` **package settings** on GitHub and set its visibility to **Public**. From the VM, use a Docker client with anonymous GHCR access to pull the exact `ghcr.io/mcnamara84/grover@sha256:…` reference shown in the workflow summary. [GHCR package visibility](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry)
+4. Once `deploy/stage` exists, add a Git stack called `grover-stage` in Portainer. Use repository `https://github.com/McNamara84/grover.git`, reference `refs/heads/deploy/stage` and Compose path `docker-compose.stage.yml`. Enable Git polling at the interval used by ERNIE. The Compose file on `dev` is the publishing template. [Portainer Git stacks](https://docs.portainer.io/user/docker/stacks/add)
+
+After polling, check that the container is healthy and its image reference matches the workflow digest. Open the home page and follow the footer link to `/changelog` from both the GFZ network and the VPN. Verify that the configured access rule denies access from an external connection with the VPN disconnected. [GROVER Stage](https://grover.rz-vm182.gfz.de/)
+
+For a rollback, pause polling on the GROVER stack. Create a temporary Git branch at the last deployment commit verified healthy on the VM, select its reference in Portainer and redeploy. After a fix passes on `dev`, switch the stack back to `refs/heads/deploy/stage`, restore polling and verify the running digest.
 
 ## Testing
 
@@ -72,7 +87,7 @@ Playwright checks the home page notice, all eight footer links and keyboard navi
 docker compose -f docker-compose.dev.yml run --rm --build e2e --project=chromium
 ```
 
-Omit `--project=chromium` to run Chromium, Firefox and WebKit. Pull requests run Chromium. Pushes to `main`, version tags (`v*`) and manual workflow runs exercise all three engines. Playwright saves failure traces in `target/playwright/`. CI makes them available as the `playwright-traces` artifact.
+Omit `--project=chromium` to run Chromium, Firefox and WebKit. Pull requests run Chromium. Pushes to `dev` and `main`, version tags (`v*`) and manual workflow runs exercise all three engines. Playwright saves failure traces in `target/playwright/`. CI makes them available as the `playwright-traces` artifact.
 
 ### Coverage
 

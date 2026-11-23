@@ -1,0 +1,8 @@
+services:
+  web:
+    image: ${GROVER_TEST_IMAGE:?Set GROVER_TEST_IMAGE to the release image to test}
+
+  e2e:
+    extends:
+      file: docker-compose.dev.yml
+      service: e2e

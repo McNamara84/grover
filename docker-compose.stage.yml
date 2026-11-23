@@ -1,0 +1,21 @@
+services:
+  grover-web:
+    # deploy/stage replaces this marker with the tested GHCR digest.
+    image: ghcr.io/mcnamara84/grover:deployment-template
+    pull_policy: always
+    init: true
+    restart: unless-stopped
+    networks: [traefik]
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: traefik
+      traefik.http.routers.grover-stage-router.rule: "Host(`grover.rz-vm182.gfz.de`)"
+      traefik.http.routers.grover-stage-router.entrypoints: https
+      traefik.http.routers.grover-stage-router.service: grover-stage-service
+      # Set this in Portainer if the GFZ access policy is attached per router.
+      traefik.http.routers.grover-stage-router.middlewares: "${GROVER_STAGE_MIDDLEWARES:-}"
+      traefik.http.services.grover-stage-service.loadbalancer.server.port: "3000"
+
+networks:
+  traefik:
+    external: true

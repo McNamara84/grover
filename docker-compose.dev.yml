@@ -35,6 +35,8 @@ services:
           path: ./Cargo.lock
         - action: rebuild
           path: ./Dockerfile.dev
+        - action: rebuild
+          path: ./scripts/install-cargo-leptos.sh
 
   coverage:
     profiles: ["test"]
