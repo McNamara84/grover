@@ -19,6 +19,8 @@ Researchers will enter shared project metadata once in the browser and download 
 
 The first development milestone is a working home page. The Rust workspace currently contains `crates/igsn-web`. Its Axum server runs on Tokio, renders the page with Leptos and serves the WebAssembly bundle that hydrates it in the browser. The application is stateless.
 
+The version link in the shared footer opens `/changelog`. To document a new version, prepend a release to the list in [changelog.rs](crates/igsn-web/src/changelog.rs). Its version becomes the footer label. Leave the publication date unset while the release is in development.
+
 ## Local development
 
 Use Docker Desktop with Linux containers, or Docker Engine, with Docker Compose 2.22 or later. The development image includes the Rust toolchain and `cargo-leptos`.
@@ -64,7 +66,7 @@ Before launching browsers, CI checks the Playwright configuration and test files
 docker compose -f docker-compose.dev.yml run --rm --no-deps --build --entrypoint npm e2e run check
 ```
 
-Playwright checks the exact notice with JavaScript disabled. With JavaScript enabled, it loads the WebAssembly bundle and exercises the hydrated router using Back and Forward. The following command builds the test image, starts the web service if needed and waits for it to serve HTTP before opening a browser.
+Playwright checks the home page notice, all eight footer links and keyboard navigation with JavaScript disabled. It also checks desktop and mobile layouts, follows the version link after hydration and exercises Back, Forward and reload on the changelog. The following command builds the test image, starts the web service if needed and waits for it to serve HTTP before opening a browser.
 
 ```sh
 docker compose -f docker-compose.dev.yml run --rm --build e2e --project=chromium
